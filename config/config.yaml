@@ -9,9 +9,18 @@ training:
   epochs: 20
   learning_rate: 0.001
   early_stopping_patience: 5
+  shuffle_buffer_size: 1000
   checkpoint_dir: "checkpoints"
   log_dir: "logs"
 
 inference:
   model_path: "checkpoints/best_model.keras"
   confidence_threshold: 0.5
+
+output:
+  dir: "outputs"
+  num_gradcam_samples: 5
+  # Filenames for each output. Set to "" to skip generating that output.
+  loss_curve: "loss_curve.png"
+  accuracy_curve: "accuracy_curve.png"
+  gradcam: "gradcam.png"
