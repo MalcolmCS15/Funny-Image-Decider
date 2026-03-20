@@ -5,21 +5,37 @@ from PIL import Image
 
 
 def find_last_conv_layer(model):
-    """Find the name of the last Conv2D layer in a Keras model."""
+    """Find the name of the last Conv2D layer, recursing into sub-models."""
     last_conv = None
     for layer in model.layers:
         if isinstance(layer, tf.keras.layers.Conv2D):
             last_conv = layer.name
+        elif isinstance(layer, tf.keras.Model):
+            nested = find_last_conv_layer(layer)
+            if nested is not None:
+                last_conv = nested
     if last_conv is None:
         raise ValueError("No Conv2D layer found in model.")
     return last_conv
+
+
+def _get_layer_by_name(model, name):
+    """Get a layer by name, recursing into sub-models."""
+    for layer in model.layers:
+        if layer.name == name:
+            return layer
+        if isinstance(layer, tf.keras.Model):
+            found = _get_layer_by_name(layer, name)
+            if found is not None:
+                return found
+    return None
 
 
 def compute_gradcam(model, image_array, conv_layer_name=None):
     """Compute a GradCAM heatmap for a single preprocessed image.
 
     Args:
-        model: A compiled tf.keras.Model.
+        model: A compiled tf.keras.Model (Sequential or Functional).
         image_array: Preprocessed image tensor of shape (H, W, 3) in [0, 1].
         conv_layer_name: Name of conv layer to target. Auto-detects if None.
 
@@ -31,17 +47,39 @@ def compute_gradcam(model, image_array, conv_layer_name=None):
 
     image_batch = tf.expand_dims(tf.cast(image_array, tf.float32), axis=0)
 
-    # Build a functional sub-model for GradCAM that works with Keras 3
-    # Sequential models. Create a fresh input and thread it through the layers.
-    input_shape = image_array.shape
-    inp = tf.keras.Input(shape=input_shape)
-    conv_output = None
-    x = inp
-    for layer in model.layers:
-        x = layer(x)
-        if layer.name == conv_layer_name:
-            conv_output = x
-    grad_model = tf.keras.Model(inputs=inp, outputs=[conv_output, x])
+    conv_layer = _get_layer_by_name(model, conv_layer_name)
+
+    if isinstance(model, tf.keras.Sequential):
+        # Flat Sequential: thread input through layers and capture conv output.
+        input_shape = image_array.shape
+        inp = tf.keras.Input(shape=input_shape)
+        conv_output = None
+        x = inp
+        for layer in model.layers:
+            x = layer(x)
+            if layer.name == conv_layer_name:
+                conv_output = x
+        grad_model = tf.keras.Model(inputs=inp, outputs=[conv_output, x])
+    else:
+        # Functional model (e.g. pretrained backbone as a sub-model).
+        # Thread through top-level layers; when hitting the backbone sub-model,
+        # build a variant that also exposes the target conv layer output.
+        inp = model.input
+        x = inp
+        conv_output = None
+        for layer in model.layers:
+            if isinstance(layer, tf.keras.layers.InputLayer):
+                continue
+            if isinstance(layer, tf.keras.Model):
+                sub_conv = layer.get_layer(conv_layer_name)
+                sub_model = tf.keras.Model(
+                    inputs=layer.input,
+                    outputs=[sub_conv.output, layer.output],
+                )
+                conv_output, x = sub_model(x)
+            else:
+                x = layer(x)
+        grad_model = tf.keras.Model(inputs=inp, outputs=[conv_output, x])
 
     with tf.GradientTape() as tape:
         conv_outputs, predictions = grad_model(image_batch)

@@ -1,3 +1,10 @@
+model:
+  pretrained: true              # true = use pretrained backbone, false = custom CNN
+  backbone: "MobileNetV2"           # ResNet50, EfficientNetB0, MobileNetV2, VGG16, etc.
+  freeze_backbone: true          # Freeze pretrained weights (feature extraction only)
+  classifier_units: 128          # Dense layer size before output
+  classifier_dropout: 0.5        # Dropout rate in classifier head
+
 dataset:
   name: "kreimanlab/HumorDB"
   image_size: 224
@@ -6,7 +13,7 @@ dataset:
   seed: 42
 
 training:
-  epochs: 20
+  epochs: 10
   learning_rate: 0.001
   early_stopping_patience: 5
   shuffle_buffer_size: 1000
@@ -21,6 +28,6 @@ output:
   dir: "outputs"
   num_gradcam_samples: 5
   # Filenames for each output. Set to "" to skip generating that output.
-  loss_curve: "loss_curve.png"
-  accuracy_curve: "accuracy_curve.png"
-  gradcam: "gradcam.png"
+  loss_curve: "MobileNetV2_loss_curve.png"
+  accuracy_curve: "MobileNetV2_accuracy_curve.png"
+  gradcam: "MobileNetV2_gradcam.png"

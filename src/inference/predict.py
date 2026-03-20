@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 from src.data.preprocessing import preprocess_image
+import src.model.architecture  # noqa: F401 — registers custom layers for model loading
 
 
 def load_trained_model(config):
