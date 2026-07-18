@@ -25,6 +25,10 @@ def main():
         "--image", type=str, help="Path to image file (required for predict mode)"
     )
     parser.add_argument(
+        "--model", type=str, default=None,
+        help="Path to model checkpoint (overrides config inference.model_path)"
+    )
+    parser.add_argument(
         "--config", type=str, default="config/config.yaml", help="Path to config file"
     )
     args = parser.parse_args()
@@ -40,13 +44,13 @@ def main():
         model = build_model(config)
         model.summary()
         print("Starting training...")
-        history = train(model, train_ds, val_ds, config)
-        print("Training complete. Model saved to:", config["training"]["checkpoint_dir"])
+        _, checkpoint_path = train(model, train_ds, val_ds, config)
+        print("Training complete. Model saved to:", checkpoint_path)
         print("Training plots saved live to:", output_dir)
 
     elif args.mode == "evaluate":
         print("Loading trained model...")
-        model = load_trained_model(config)
+        model = load_trained_model(config, model_path=args.model)
 
         print("Loading HumorDB dataset...")
         hf_ds = load_humordb(config)
@@ -64,7 +68,7 @@ def main():
     elif args.mode == "predict":
         if not args.image:
             parser.error("--image is required for predict mode")
-        model = load_trained_model(config)
+        model = load_trained_model(config, model_path=args.model)
         result = predict_image(model, args.image, config)
         print(f"Prediction: {result['label']}")
         print(f"Confidence: {result['confidence']}%")

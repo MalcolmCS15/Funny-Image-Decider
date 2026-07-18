@@ -1,6 +1,6 @@
 model:
   pretrained: true              # true = use pretrained backbone, false = custom CNN
-  backbone: "MobileNetV2"           # ResNet50, EfficientNetB0, MobileNetV2, VGG16, etc.
+  backbone: "EfficientNetB0"        # MobileNetV2(3.4M), EfficientNetB0 (5.3M), ResNet50 (25.6M), VGG16 (138M), etc.
   freeze_backbone: true          # Freeze pretrained weights (feature extraction only)
   classifier_units: 128          # Dense layer size before output
   classifier_dropout: 0.5        # Dropout rate in classifier head
@@ -21,13 +21,13 @@ training:
   log_dir: "logs"
 
 inference:
-  model_path: "checkpoints/best_model.keras"
+  model_path: "checkpoints/EfficientNetB0_best.keras"
   confidence_threshold: 0.5
-
+ 
 output:
   dir: "outputs"
   num_gradcam_samples: 5
   # Filenames for each output. Set to "" to skip generating that output.
-  loss_curve: "MobileNetV2_loss_curve.png"
-  accuracy_curve: "MobileNetV2_accuracy_curve.png"
-  gradcam: "MobileNetV2_gradcam.png"
+  loss_curve: "EfficientNetB0_loss_curve.png"
+  accuracy_curve: "EfficientNetB0_accuracy_curve.png"
+  gradcam: "EfficientNetB0_gradcam.png"

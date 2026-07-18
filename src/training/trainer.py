@@ -17,6 +17,13 @@ def train(model, train_ds, val_ds, config):
         "accuracy": output_cfg.get("accuracy_curve", ""),
     }
 
+    model_cfg = config.get("model", {})
+    if model_cfg.get("pretrained", False):
+        run_name = model_cfg.get("backbone", "pretrained")
+    else:
+        run_name = "custom_cnn"
+    checkpoint_path = os.path.join(checkpoint_dir, f"{run_name}_best.keras")
+
     os.makedirs(checkpoint_dir, exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
 
@@ -27,7 +34,7 @@ def train(model, train_ds, val_ds, config):
             restore_best_weights=True,
         ),
         tf.keras.callbacks.ModelCheckpoint(
-            filepath=os.path.join(checkpoint_dir, "best_model.keras"),
+            filepath=checkpoint_path,
             monitor="val_loss",
             save_best_only=True,
         ),
@@ -42,4 +49,4 @@ def train(model, train_ds, val_ds, config):
         callbacks=callbacks,
     )
 
-    return history
+    return history, checkpoint_path

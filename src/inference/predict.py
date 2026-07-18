@@ -5,9 +5,16 @@ from src.data.preprocessing import preprocess_image
 import src.model.architecture  # noqa: F401 — registers custom layers for model loading
 
 
-def load_trained_model(config):
-    """Load a trained model from the checkpoint path."""
-    model_path = config["inference"]["model_path"]
+def load_trained_model(config, model_path=None):
+    """Load a trained model from the checkpoint path.
+
+    Args:
+        config: Project config dict.
+        model_path: Optional explicit path. If None, falls back to
+                    config["inference"]["model_path"].
+    """
+    if model_path is None:
+        model_path = config["inference"]["model_path"]
     return tf.keras.models.load_model(model_path)
 
 
