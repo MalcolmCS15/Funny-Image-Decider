@@ -1,8 +1,14 @@
 # Funny Image Decider
 
-A binary image classifier that predicts whether an image is **funny or not funny**, trained on the [HumorDB](https://huggingface.co/datasets/kreimanlab/HumorDB) dataset from Kreiman Lab.
+I made a cartoon and wanted to know if it was funny or not. My friends said it wasn't, but I had to be sure. A binary image classifier that predicts whether an image is **funny or not funny**, trained on the [HumorDB](https://huggingface.co/datasets/kreimanlab/HumorDB) dataset from Kreiman Lab.
 
 Built with TensorFlow/Keras. Supports both a custom CNN trained from scratch and pretrained backbones (transfer learning) for better performance on small datasets.
+
+It said my cartoon was **not** funny, which reminds me I should bring up...HumorDB is a small dataset with only around ~3500 images TOTAL, so it is impossible for model to meaningfully train and learn REAL funny/not funny classifications. 
+
+<img width="2235" height="3682" alt="image" src="https://github.com/user-attachments/assets/cfe7ed53-2c08-43f8-a3c0-847da6099c65" />
+
+As you can see the model's attention is focused on totally random things, and the 56% validation accuracy I got from mobilenetv2 is surely overfitting some random noise. Note the confidence is always near 50%.
 
 ## Quick Start
 
